@@ -29,6 +29,9 @@ For the detailed SDK usage, please refer to the [SDK reference](https://docs.api
 $ git clone https://github.com/charactr-platform/charactr-api-sdk-go
 ```
 
+#### Provide credentials
+Open `./example/credentials.go` and provide your credentials. You can find them in your [Client Panel](https://api.charactr.com) account.
+
 #### Use TTS
 ```bash
 $ go run example/tts/main.go
