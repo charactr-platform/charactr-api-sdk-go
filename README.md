@@ -20,7 +20,7 @@ $ go add github.com/charactr-platform/charactr-api-sdk-go
 
 ## Usage
 
-For the detailed SDK usage, please refer to the [SDK reference](https://docs.api.charactr.com/reference/go) or the `./examples` directory.
+For the detailed SDK usage, please refer to the [SDK reference](https://docs.api.charactr.com/reference/go) or the `./example` directory.
 
 ## How to run examples
 
