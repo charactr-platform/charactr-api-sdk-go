@@ -1,7 +1,8 @@
-package sdk
+package charactr
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,11 +18,11 @@ func newTTS(credentials *Credentials) *tts {
 	return &tts{credentials: credentials}
 }
 
-func (v *tts) GetVoices() ([]Voice, error) {
-	return getVoices(fmt.Sprintf("%s/v1/tts/voices", config.apiUrl), v.credentials)
+func (v *tts) GetVoices(ctx context.Context) ([]Voice, error) {
+	return getVoices(ctx, fmt.Sprintf("%s/v1/tts/voices", sdkConfig.apiUrl), v.credentials)
 }
 
-func (v *tts) Convert(voiceID int, text string) (*AudioResponse, error) {
+func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResponse, error) {
 	type input struct {
 		VoiceID int    `json:"voiceId"`
 		Text    string `json:"text"`
@@ -32,7 +33,7 @@ func (v *tts) Convert(voiceID int, text string) (*AudioResponse, error) {
 		Text:    text,
 	})
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v1/tts/convert", config.apiUrl), bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/v1/tts/convert", sdkConfig.apiUrl), bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -46,21 +47,21 @@ func (v *tts) Convert(voiceID int, text string) (*AudioResponse, error) {
 	}
 
 	if res.StatusCode == http.StatusOK {
-		duration, err := strconv.Atoi(res.Header.Get("Audio-Duration-Ms"))
+		duration, err := strconv.Atoi(res.Header.Get(audioDurationHeader))
 		if err != nil {
 			return nil, err
 		}
 
-		size, err := strconv.Atoi(res.Header.Get("Audio-Size-Bytes"))
+		size, err := strconv.Atoi(res.Header.Get(audioSizeHeader))
 		if err != nil {
 			return nil, err
 		}
 
 		return &AudioResponse{
-			DurationMs: duration,
-			SizeBytes:  size,
-			Type:       res.Header.Get("Content-Type"),
-			Audio:      res.Body,
+			DurationMs:  duration,
+			SizeBytes:   size,
+			ContentType: res.Header.Get("Content-Type"),
+			Audio:       res.Body,
 		}, nil
 	}
 
@@ -69,7 +70,7 @@ func (v *tts) Convert(voiceID int, text string) (*AudioResponse, error) {
 		return nil, err
 	}
 
-	var errRes ErrResponse
+	var errRes errResponse
 	err = json.Unmarshal(body, &errRes)
 	if err != nil {
 		return nil, err

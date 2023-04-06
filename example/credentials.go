@@ -1,8 +1,8 @@
 package example
 
-import CharactrSDK "github.com/charactr-platform/charactr-api-sdk-go"
+import "github.com/charactr-platform/charactr-api-sdk-go"
 
-var Credentials = CharactrSDK.Credentials{
+var Credentials = charactr.Credentials{
 	ClientKey: "",
 	APIKey:    "",
 }

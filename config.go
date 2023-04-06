@@ -1,5 +1,8 @@
-package sdk
+package charactr
 
-var config = Config{
+var audioDurationHeader = "Audio-Duration-Ms"
+var audioSizeHeader = "Audio-Size-Bytes"
+
+var sdkConfig = config{
 	apiUrl: "https://api.charactr.com",
 }

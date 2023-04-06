@@ -1,16 +1,17 @@
-package sdk
+package charactr
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
-func getVoices(url string, credentials *Credentials) ([]Voice, error) {
+func getVoices(ctx context.Context, url string, credentials *Credentials) ([]Voice, error) {
 	var result []Voice
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +38,7 @@ func getVoices(url string, credentials *Credentials) ([]Voice, error) {
 		return result, nil
 	}
 
-	var errRes ErrResponse
+	var errRes errResponse
 	err = json.Unmarshal(body, &errRes)
 	if err != nil {
 		return nil, err

@@ -1,8 +1,8 @@
-package sdk
+package charactr
 
 import "io"
 
-type Config struct {
+type config struct {
 	apiUrl string
 }
 
@@ -25,12 +25,12 @@ type Voice struct {
 }
 
 type AudioResponse struct {
-	DurationMs int    `json:"durationMs"`
-	SizeBytes  int    `json:"sizeBytes"`
-	Type       string `json:"type"`
-	Audio      io.Reader
+	DurationMs  int    `json:"durationMs"`
+	SizeBytes   int    `json:"sizeBytes"`
+	ContentType string `json:"contentType"`
+	Audio       io.Reader
 }
 
-type ErrResponse struct {
+type errResponse struct {
 	Msg string `json:"message"`
 }

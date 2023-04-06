@@ -1,18 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 
-	CharactrSDK "github.com/charactr-platform/charactr-api-sdk-go"
+	"github.com/charactr-platform/charactr-api-sdk-go"
 	"github.com/charactr-platform/charactr-api-sdk-go/example"
 )
 
 func main() {
-	sdk := CharactrSDK.New(&example.Credentials)
+	sdk := charactr.New(&example.Credentials)
 
-	voices, err := sdk.VC.GetVoices()
+	voices, err := sdk.VC.GetVoices(context.TODO())
 	if err != nil {
 		panic(err)
 	}
@@ -22,7 +23,7 @@ func main() {
 		panic(err)
 	}
 
-	result, err := sdk.VC.Convert(voices[0].ID, file)
+	result, err := sdk.VC.Convert(context.TODO(), voices[0].ID, file)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +39,7 @@ func main() {
 	}
 
 	fmt.Println("result_vc.wav has been saved.")
-	fmt.Println("Type: ", result.Type)
+	fmt.Println("Type: ", result.ContentType)
 	fmt.Println("Size: ", result.SizeBytes, "bytes")
 	fmt.Println("Duration: ", result.DurationMs, "ms")
 }

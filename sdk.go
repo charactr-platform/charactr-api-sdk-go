@@ -1,4 +1,4 @@
-package sdk
+package charactr
 
 type CharactrAPISDK struct {
 	credentials *Credentials
