@@ -3,9 +3,7 @@ package charactr
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -75,16 +73,5 @@ func (v *vc) Convert(ctx context.Context, voiceID int, inputAudio []byte) (*Audi
 		}, nil
 	}
 
-	errBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var errRes errResponse
-	err = json.Unmarshal(errBody, &errRes)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("CharactrAPI request has failed with code %d: %s", res.StatusCode, errRes.Msg)
+	return nil, getApiErr(res)
 }

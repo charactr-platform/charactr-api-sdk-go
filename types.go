@@ -30,7 +30,3 @@ type AudioResponse struct {
 	ContentType string `json:"contentType"`
 	Audio       io.Reader
 }
-
-type errResponse struct {
-	Msg string `json:"message"`
-}

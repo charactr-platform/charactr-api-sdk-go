@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 )
@@ -65,16 +64,5 @@ func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResp
 		}, nil
 	}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var errRes errResponse
-	err = json.Unmarshal(body, &errRes)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("CharactrAPI request has failed with code %d: %s", res.StatusCode, errRes.Msg)
+	return nil, getApiErr(res)
 }

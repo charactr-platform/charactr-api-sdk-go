@@ -3,7 +3,6 @@ package charactr
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -24,12 +23,12 @@ func getVoices(ctx context.Context, url string, credentials *Credentials) ([]Voi
 		return nil, err
 	}
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	if res.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
 		err = json.Unmarshal(body, &result)
 		if err != nil {
 			return nil, err
@@ -38,11 +37,5 @@ func getVoices(ctx context.Context, url string, credentials *Credentials) ([]Voi
 		return result, nil
 	}
 
-	var errRes errResponse
-	err = json.Unmarshal(body, &errRes)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("CharactrAPI request has failed with code %d: %s", res.StatusCode, errRes.Msg)
+	return nil, getApiErr(res)
 }
