@@ -48,7 +48,7 @@ func (v *SimplexStream) convert(text string) error {
 		return ErrEmptyText
 	}
 
-	err := v.conn.Write(v.ctx, websocket.MessageText, []byte(fmt.Sprintf(`{ "type": "convert", "text": "%s" }`, text)))
+	err := v.conn.Write(v.ctx, websocket.MessageText, []byte(fmt.Sprintf(`{ "type": "convert", "text": %q }`, text)))
 	if err != nil {
 		return err
 	}

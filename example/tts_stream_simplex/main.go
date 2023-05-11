@@ -29,7 +29,7 @@ func main() {
 		panic(err)
 	}
 
-	stream, err := sdk.TTS.StartSimplexStream(ctx, voices[0].ID, "Hello world from the charactr TTS Simplex Streaming.")
+	stream, err := sdk.TTS.StartSimplexStream(ctx, voices[0].ID, `Hello world from the charactr TTS Simplex Streaming.`)
 	if err != nil {
 		panic(err)
 	}

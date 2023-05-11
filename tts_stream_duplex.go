@@ -21,16 +21,15 @@ type DuplexStream struct {
 }
 
 type DuplexStreamMetadata struct {
-	mu               sync.Mutex
-	isClosed         bool
-	isCloseRequested bool
-	lastActiveAt     time.Time
+	mu           sync.Mutex
+	isClosed     bool
+	lastActiveAt time.Time
 }
 
 // Read returns the raw audio data converted by the server
 func (v *DuplexStream) Read() ([]byte, error) {
 	messageType, audioBytes, err := v.conn.Read(v.ctx)
-	v.markStreamActivity()
+	v.metadata.markStreamActivity()
 
 	// check for normal closure
 	{
@@ -38,9 +37,7 @@ func (v *DuplexStream) Read() ([]byte, error) {
 		ok := errors.As(err, closeErr)
 
 		if ok && closeErr.Code == websocket.StatusNormalClosure {
-			v.metadata.mu.Lock()
-			defer v.metadata.mu.Unlock()
-			v.metadata.isClosed = true
+			v.metadata.setStreamClosed()
 			return nil, io.EOF
 		}
 	}
@@ -54,17 +51,17 @@ func (v *DuplexStream) Read() ([]byte, error) {
 
 // Convert asynchronously feeds the stream with the text to be converted to audio
 func (v *DuplexStream) Convert(text string) error {
-	v.markStreamActivity()
+	v.metadata.markStreamActivity()
 
 	if text == "" {
 		return ErrEmptyText
 	}
 
-	if v.metadata.isClosed || v.metadata.isCloseRequested {
+	if v.metadata.isStreamClosed() {
 		return ErrStreamClosed
 	}
 
-	err := v.conn.Write(v.ctx, websocket.MessageText, []byte(fmt.Sprintf(`{ "type": "convert", "text": "%s" }`, text)))
+	err := v.conn.Write(v.ctx, websocket.MessageText, []byte(fmt.Sprintf(`{ "type": "convert", "text": %q }`, text)))
 	if err != nil {
 		return err
 	}
@@ -76,56 +73,42 @@ func (v *DuplexStream) Convert(text string) error {
 func (v *DuplexStream) Wait() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				if !v.isStreamActive() || v.metadata.isClosed || v.metadata.isCloseRequested {
-					ticker.Stop()
-					wg.Done()
-				}
+	for {
+		select {
+		case <-ticker.C:
+			if !v.metadata.isStreamActive() || v.metadata.isStreamClosed() {
+				ticker.Stop()
 			}
 		}
-	}()
-
-	wg.Wait()
+	}
 }
 
 // Close requests the server to close the connection gracefully
 func (v *DuplexStream) Close() error {
-	v.metadata.mu.Lock()
-	defer v.metadata.mu.Unlock()
-
-	if v.metadata.isClosed || v.metadata.isCloseRequested {
+	if v.metadata.isStreamClosed() {
 		return ErrStreamClosed
 	}
 
-	v.metadata.isCloseRequested = true
+	v.metadata.setStreamClosed()
 
 	return v.conn.Write(v.ctx, websocket.MessageText, []byte(`{ "type": "close" }`))
 }
 
 // Terminate ends the stream immediately. In most cases we advise to use Close() instead.
 func (v *DuplexStream) Terminate() error {
-	v.metadata.mu.Lock()
-	defer v.metadata.mu.Unlock()
-
-	if v.metadata.isClosed || v.metadata.isCloseRequested {
+	if v.metadata.isStreamClosed() {
 		return ErrStreamClosed
 	}
 
-	v.metadata.isClosed = true
+	v.metadata.setStreamClosed()
 
 	return v.conn.Close(websocket.StatusNormalClosure, "client terminated the connection")
 }
 
 func (v *DuplexStream) authenticate(clientKey string, apiKey string) error {
-	v.markStreamActivity()
+	v.metadata.markStreamActivity()
 
-	if v.metadata.isClosed || v.metadata.isCloseRequested {
+	if v.metadata.isStreamClosed() {
 		return ErrStreamClosed
 	}
 
@@ -137,22 +120,36 @@ func (v *DuplexStream) authenticate(clientKey string, apiKey string) error {
 	return nil
 }
 
-func (v *DuplexStream) markStreamActivity() {
-	v.metadata.mu.Lock()
-	defer v.metadata.mu.Unlock()
+func (v *DuplexStreamMetadata) markStreamActivity() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
 
-	v.metadata.lastActiveAt = time.Now()
+	v.lastActiveAt = time.Now()
 }
 
-func (v *DuplexStream) msSinceStreamLastActive() int64 {
-	v.metadata.mu.Lock()
-	defer v.metadata.mu.Unlock()
+func (v *DuplexStreamMetadata) msSinceStreamLastActive() int64 {
+	v.mu.Lock()
+	defer v.mu.Unlock()
 
-	diff := time.Now().Sub(v.metadata.lastActiveAt)
+	diff := time.Now().Sub(v.lastActiveAt)
 
 	return diff.Milliseconds()
 }
 
-func (v *DuplexStream) isStreamActive() bool {
+func (v *DuplexStreamMetadata) isStreamActive() bool {
 	return v.msSinceStreamLastActive() < streamInactivityThresholdMs
+}
+
+func (v *DuplexStreamMetadata) isStreamClosed() bool {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	return v.isClosed
+}
+
+func (v *DuplexStreamMetadata) setStreamClosed() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	v.isClosed = true
 }
