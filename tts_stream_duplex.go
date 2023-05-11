@@ -72,7 +72,7 @@ func (v *DuplexStream) Convert(text string) error {
 	return nil
 }
 
-// Wait will hold until there was 5 seconds of stream inactivity
+// Wait will block the execution until there was 5 seconds of stream inactivity
 func (v *DuplexStream) Wait() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 
