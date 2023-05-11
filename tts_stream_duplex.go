@@ -80,7 +80,7 @@ func (v *DuplexStream) Wait() {
 		for {
 			select {
 			case <-ticker.C:
-				if !v.isStreamActive() {
+				if !v.isStreamActive() || v.metadata.isClosed || v.metadata.isCloseRequested {
 					ticker.Stop()
 					wg.Done()
 				}
