@@ -27,6 +27,7 @@ type DuplexStreamMetadata struct {
 	lastActiveAt     time.Time
 }
 
+// Read returns the raw audio data converted by the server
 func (v *DuplexStream) Read() ([]byte, error) {
 	messageType, audioBytes, err := v.conn.Read(v.ctx)
 	v.markStreamActivity()
@@ -51,6 +52,7 @@ func (v *DuplexStream) Read() ([]byte, error) {
 	return audioBytes, err
 }
 
+// Convert asynchronously feeds the stream with the text to be converted to audio
 func (v *DuplexStream) Convert(text string) error {
 	v.markStreamActivity()
 
@@ -70,6 +72,7 @@ func (v *DuplexStream) Convert(text string) error {
 	return nil
 }
 
+// Wait will hold until there was 5 seconds of stream inactivity
 func (v *DuplexStream) Wait() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 
@@ -91,6 +94,7 @@ func (v *DuplexStream) Wait() {
 	wg.Wait()
 }
 
+// Close requests the server to close the connection gracefully
 func (v *DuplexStream) Close() error {
 	v.metadata.mu.Lock()
 	defer v.metadata.mu.Unlock()
@@ -104,6 +108,7 @@ func (v *DuplexStream) Close() error {
 	return v.conn.Write(v.ctx, websocket.MessageText, []byte(`{ "type": "close" }`))
 }
 
+// Terminate ends the stream immediately. In most cases we advise to use Close() instead.
 func (v *DuplexStream) Terminate() error {
 	v.metadata.mu.Lock()
 	defer v.metadata.mu.Unlock()
