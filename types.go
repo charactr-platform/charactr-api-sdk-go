@@ -3,7 +3,8 @@ package charactr
 import "io"
 
 type config struct {
-	apiUrl string
+	apiUrl   string
+	wsApiUrl string
 }
 
 type Credentials struct {
