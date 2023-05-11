@@ -28,9 +28,8 @@ type DuplexStreamMetadata struct {
 }
 
 func (v *DuplexStream) Read() ([]byte, error) {
-	v.markStreamActivity()
-
 	messageType, audioBytes, err := v.conn.Read(v.ctx)
+	v.markStreamActivity()
 
 	// check for normal closure
 	{
