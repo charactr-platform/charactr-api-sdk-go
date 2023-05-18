@@ -21,9 +21,10 @@ type DuplexStream struct {
 }
 
 type DuplexStreamMetadata struct {
-	mu           sync.Mutex
-	isClosed     bool
-	lastActiveAt time.Time
+	mu               sync.Mutex
+	isClosed         bool
+	isCloseRequested bool
+	lastActiveAt     time.Time
 }
 
 // Read returns the raw audio data converted by the server
@@ -57,7 +58,7 @@ func (v *DuplexStream) Convert(text string) error {
 		return ErrEmptyText
 	}
 
-	if v.metadata.isStreamClosed() {
+	if v.metadata.isStreamClosed() || v.metadata.isStreamCloseRequested() {
 		return ErrStreamClosed
 	}
 
@@ -76,7 +77,7 @@ func (v *DuplexStream) Wait() {
 	for {
 		select {
 		case <-ticker.C:
-			if !v.metadata.isStreamActive() || v.metadata.isStreamClosed() {
+			if !v.metadata.isStreamActive() || v.metadata.isStreamClosed() || v.metadata.isStreamCloseRequested() {
 				ticker.Stop()
 			}
 		}
@@ -85,11 +86,11 @@ func (v *DuplexStream) Wait() {
 
 // Close requests the server to close the connection gracefully
 func (v *DuplexStream) Close() error {
-	if v.metadata.isStreamClosed() {
+	if v.metadata.isStreamClosed() || v.metadata.isStreamCloseRequested() {
 		return ErrStreamClosed
 	}
 
-	v.metadata.setStreamClosed()
+	v.metadata.setStreamCloseRequested()
 
 	return v.conn.Write(v.ctx, websocket.MessageText, []byte(`{ "type": "close" }`))
 }
@@ -108,7 +109,7 @@ func (v *DuplexStream) Terminate() error {
 func (v *DuplexStream) authenticate(clientKey string, apiKey string) error {
 	v.metadata.markStreamActivity()
 
-	if v.metadata.isStreamClosed() {
+	if v.metadata.isStreamClosed() || v.metadata.isStreamCloseRequested() {
 		return ErrStreamClosed
 	}
 
@@ -152,4 +153,18 @@ func (v *DuplexStreamMetadata) setStreamClosed() {
 	defer v.mu.Unlock()
 
 	v.isClosed = true
+}
+
+func (v *DuplexStreamMetadata) isStreamCloseRequested() bool {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	return v.isCloseRequested
+}
+
+func (v *DuplexStreamMetadata) setStreamCloseRequested() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	v.isCloseRequested = true
 }
