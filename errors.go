@@ -8,9 +8,12 @@ import (
 )
 
 var (
-	ErrClient  = fmt.Errorf("charactr-api: client error")
-	ErrServer  = fmt.Errorf("charactr-api: server error")
-	ErrUnknown = fmt.Errorf("charactr-api: unknown error")
+	ErrClient                   = fmt.Errorf("charactr-api: client error")
+	ErrServer                   = fmt.Errorf("charactr-api: server error")
+	ErrUnknown                  = fmt.Errorf("charactr-api: unknown error")
+	ErrEmptyText                = fmt.Errorf("text must not be empty")
+	ErrStreamClosed             = fmt.Errorf("stream is already closed")
+	ErrStreamUnknownMessageRecv = fmt.Errorf("stream has received an unknown message type")
 )
 
 type errResponse struct {

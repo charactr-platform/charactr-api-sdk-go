@@ -46,6 +46,16 @@ Open `./example/credentials.go` and provide your credentials. You can find them 
 $ go run example/tts/main.go
 ```
 
+#### Use TTS Simplex streaming
+```bash
+$ go run example/tts_stream_simplex/main.go
+```
+
+#### Use TTS Duplex streaming
+```bash
+$ go run example/tts_stream_duplex/main.go
+```
+
 #### Use VC
 ```bash
 $ go run example/vc/main.go

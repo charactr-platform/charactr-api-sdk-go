@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"nhooyr.io/websocket"
 )
 
 type tts struct {
@@ -65,4 +67,48 @@ func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResp
 	}
 
 	return nil, getApiErr(res)
+}
+
+func (v *tts) StartDuplexStream(ctx context.Context, voiceID int) (*DuplexStream, error) {
+	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/duplex/ws?voiceId=%d", sdkConfig.wsApiUrl, voiceID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := &DuplexStream{
+		ctx:      ctx,
+		conn:     ws,
+		metadata: DuplexStreamMetadata{},
+	}
+
+	err = stream.authenticate(v.credentials.ClientKey, v.credentials.APIKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return stream, nil
+}
+
+func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string) (*SimplexStream, error) {
+	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/simplex/ws?voiceId=%d", sdkConfig.wsApiUrl, voiceID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := &SimplexStream{
+		ctx:  ctx,
+		conn: ws,
+	}
+
+	err = stream.authenticate(v.credentials.ClientKey, v.credentials.APIKey)
+	if err != nil {
+		return nil, err
+	}
+
+	err = stream.convert(text)
+	if err != nil {
+		return nil, err
+	}
+
+	return stream, nil
 }
