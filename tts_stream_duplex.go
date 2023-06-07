@@ -40,6 +40,8 @@ func (v *DuplexStream) Read() ([]byte, error) {
 		if ok && closeErr.Code == websocket.StatusNormalClosure {
 			v.metadata.setStreamClosed()
 			return nil, io.EOF
+		} else if err != nil {
+			return nil, err
 		}
 	}
 

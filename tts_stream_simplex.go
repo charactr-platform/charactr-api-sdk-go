@@ -24,6 +24,8 @@ func (v *SimplexStream) Read() ([]byte, error) {
 
 		if ok && closeErr.Code == websocket.StatusNormalClosure {
 			return nil, io.EOF
+		} else if err != nil {
+			return nil, err
 		}
 	}
 
