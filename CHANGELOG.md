@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [v1.0.2] - 2023-06-07
 
-- Fixed error handling when user passes invalid VoiceID in the TTS Simplex Streaming
+- Fixed error handling when user passes invalid VoiceID in the TTS Streaming
 
 ## [v1.0.1] - 2023-05-26
 
