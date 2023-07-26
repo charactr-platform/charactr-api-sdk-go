@@ -48,6 +48,7 @@ func (v *vc) Convert(ctx context.Context, voiceID int, inputAudio []byte) (*Audi
 	req.Header.Set("X-Client-Key", v.credentials.ClientKey)
 	req.Header.Set("X-API-Key", v.credentials.APIKey)
 	req.Header.Set("Content-Type", mp.FormDataContentType())
+	req.Header.Set("User-Agent", "sdk-go")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
