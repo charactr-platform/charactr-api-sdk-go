@@ -29,7 +29,7 @@ func main() {
 		panic(err)
 	}
 
-	stream, err := sdk.TTS.StartDuplexStream(ctx, voices[0].ID, nil)
+	stream, err := sdk.TTS.StartDuplexStream(ctx, voices[0].ID)
 	if err != nil {
 		panic(err)
 	}

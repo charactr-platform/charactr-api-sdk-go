@@ -76,7 +76,7 @@ func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResp
 	return nil, getApiErr(res)
 }
 
-func (v *tts) StartDuplexStream(ctx context.Context, voiceID int, options *TTSStreamingOptions) (*DuplexStream, error) {
+func (v *tts) StartDuplexStream(ctx context.Context, voiceID int, options ...*TTSStreamingOptions) (*DuplexStream, error) {
 	params := getTTSStreamingQueryParams(voiceID, options)
 
 	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/duplex/ws?%s", sdkConfig.wsApiUrl, params), &websocket.DialOptions{
@@ -100,7 +100,7 @@ func (v *tts) StartDuplexStream(ctx context.Context, voiceID int, options *TTSSt
 	return stream, nil
 }
 
-func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string, options *TTSStreamingOptions) (*SimplexStream, error) {
+func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string, options ...*TTSStreamingOptions) (*SimplexStream, error) {
 	params := getTTSStreamingQueryParams(voiceID, options)
 
 	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/simplex/ws?%s", sdkConfig.wsApiUrl, params), &websocket.DialOptions{
@@ -128,22 +128,24 @@ func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string, 
 	return stream, nil
 }
 
-func getTTSStreamingQueryParams(voiceID int, options *TTSStreamingOptions) string {
+func getTTSStreamingQueryParams(voiceID int, options []*TTSStreamingOptions) string {
 	params := url.Values{
 		"voiceId": []string{strconv.Itoa(voiceID)},
 	}
 
-	if options != nil {
-		if options.SampleRate != 0 && options.Format == "" {
-			options.Format = "wav"
+	if len(options) == 1 {
+		opt := options[0]
+
+		if opt.SampleRate != 0 && opt.Format == "" {
+			opt.Format = "wav"
 		}
 
-		if options.Format != "" {
-			params.Set("format", options.Format)
+		if opt.Format != "" {
+			params.Set("format", opt.Format)
 		}
 
-		if options.SampleRate != 0 {
-			params.Set("sr", strconv.Itoa(options.SampleRate))
+		if opt.SampleRate != 0 {
+			params.Set("sr", strconv.Itoa(opt.SampleRate))
 		}
 	}
 
