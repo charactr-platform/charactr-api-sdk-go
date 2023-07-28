@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"nhooyr.io/websocket"
@@ -13,6 +14,11 @@ import (
 
 type tts struct {
 	credentials *Credentials
+}
+
+type TTSStreamingOptions struct {
+	Format     string
+	SampleRate int
 }
 
 func newTTS(credentials *Credentials) *tts {
@@ -41,6 +47,7 @@ func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResp
 
 	req.Header.Set("X-Client-Key", v.credentials.ClientKey)
 	req.Header.Set("X-API-Key", v.credentials.APIKey)
+	req.Header.Set("User-Agent", "sdk-go")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -69,8 +76,12 @@ func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResp
 	return nil, getApiErr(res)
 }
 
-func (v *tts) StartDuplexStream(ctx context.Context, voiceID int) (*DuplexStream, error) {
-	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/duplex/ws?voiceId=%d", sdkConfig.wsApiUrl, voiceID), nil)
+func (v *tts) StartDuplexStream(ctx context.Context, voiceID int, options ...*TTSStreamingOptions) (*DuplexStream, error) {
+	params := getTTSStreamingQueryParams(voiceID, options)
+
+	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/duplex/ws?%s", sdkConfig.wsApiUrl, params), &websocket.DialOptions{
+		HTTPHeader: http.Header{"User-Agent": []string{"sdk-go"}},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +100,12 @@ func (v *tts) StartDuplexStream(ctx context.Context, voiceID int) (*DuplexStream
 	return stream, nil
 }
 
-func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string) (*SimplexStream, error) {
-	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/simplex/ws?voiceId=%d", sdkConfig.wsApiUrl, voiceID), nil)
+func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string, options ...*TTSStreamingOptions) (*SimplexStream, error) {
+	params := getTTSStreamingQueryParams(voiceID, options)
+
+	ws, _, err := websocket.Dial(ctx, fmt.Sprintf("%s/v1/tts/stream/simplex/ws?%s", sdkConfig.wsApiUrl, params), &websocket.DialOptions{
+		HTTPHeader: http.Header{"User-Agent": []string{"sdk-go"}},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -111,4 +126,28 @@ func (v *tts) StartSimplexStream(ctx context.Context, voiceID int, text string) 
 	}
 
 	return stream, nil
+}
+
+func getTTSStreamingQueryParams(voiceID int, options []*TTSStreamingOptions) string {
+	params := url.Values{
+		"voiceId": []string{strconv.Itoa(voiceID)},
+	}
+
+	if len(options) == 1 {
+		opt := options[0]
+
+		if opt.SampleRate != 0 && opt.Format == "" {
+			opt.Format = "wav"
+		}
+
+		if opt.Format != "" {
+			params.Set("format", opt.Format)
+		}
+
+		if opt.SampleRate != 0 {
+			params.Set("sr", strconv.Itoa(opt.SampleRate))
+		}
+	}
+
+	return params.Encode()
 }
