@@ -37,8 +37,8 @@ func getApiErr(res *http.Response) error {
 	}
 
 	if res.StatusCode < 500 {
-		return fmt.Errorf("%w: [%d] %w", ErrClient, res.StatusCode, errRes.Msg)
+		return fmt.Errorf("%w: [%d] %s", ErrClient, res.StatusCode, errRes.Msg)
 	}
 
-	return fmt.Errorf("%w: [%d] %w", ErrServer, res.StatusCode, errRes.Msg)
+	return fmt.Errorf("%w: [%d] %s", ErrServer, res.StatusCode, errRes.Msg)
 }
