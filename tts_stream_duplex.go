@@ -134,7 +134,7 @@ func (v *DuplexStreamMetadata) msSinceStreamLastActive() int64 {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	diff := time.Now().Sub(v.lastActiveAt)
+	diff := time.Since(v.lastActiveAt)
 
 	return diff.Milliseconds()
 }
