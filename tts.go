@@ -17,8 +17,13 @@ type tts struct {
 }
 
 type TTSStreamingOptions struct {
-	Format     string
-	SampleRate int
+	Format      string
+	SampleRate  int
+	ClonedVoice bool
+}
+
+type TTSRequestOptions struct {
+	ClonedVoice bool
 }
 
 func newTTS(credentials *Credentials) *tts {
@@ -29,16 +34,28 @@ func (v *tts) GetVoices(ctx context.Context) ([]Voice, error) {
 	return getVoices(ctx, fmt.Sprintf("%s/v1/tts/voices", sdkConfig.apiUrl), v.credentials)
 }
 
-func (v *tts) Convert(ctx context.Context, voiceID int, text string) (*AudioResponse, error) {
+func (v *tts) Convert(ctx context.Context, voiceID int, text string, options ...*TTSRequestOptions) (*AudioResponse, error) {
 	type input struct {
-		VoiceID int    `json:"voiceId"`
-		Text    string `json:"text"`
+		VoiceID   int    `json:"voiceId"`
+		Text      string `json:"text"`
+		VoiceType string `json:"voiceType"`
 	}
 
-	reqBody, err := json.Marshal(input{
-		VoiceID: voiceID,
-		Text:    text,
-	})
+	voiceType := "system"
+	if len(options) > 0 && options[0] != nil && options[0].ClonedVoice {
+		voiceType = "cloned"
+	}
+
+	in := input{
+		VoiceID:   voiceID,
+		Text:      text,
+		VoiceType: voiceType,
+	}
+
+	reqBody, err := json.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/v1/tts/convert", sdkConfig.apiUrl), bytes.NewReader(reqBody))
 	if err != nil {
@@ -133,7 +150,7 @@ func getTTSStreamingQueryParams(voiceID int, options []*TTSStreamingOptions) str
 		"voiceId": []string{strconv.Itoa(voiceID)},
 	}
 
-	if len(options) == 1 {
+	if len(options) == 1 && options[0] != nil {
 		opt := options[0]
 
 		if opt.SampleRate != 0 && opt.Format == "" {
@@ -146,6 +163,10 @@ func getTTSStreamingQueryParams(voiceID int, options []*TTSStreamingOptions) str
 
 		if opt.SampleRate != 0 {
 			params.Set("sr", strconv.Itoa(opt.SampleRate))
+		}
+
+		if opt.ClonedVoice {
+			params.Set("voiceType", "cloned")
 		}
 	}
 
