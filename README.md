@@ -11,6 +11,7 @@ Go SDK to interact with the charactr API.
 
 - making TTS requests
 - making VC requests
+- managing Voice Clones
 - getting lists of available voices
 
 ## Installation
@@ -59,4 +60,9 @@ go run example/tts_stream_duplex/main.go
 #### Use VC
 ```bash
 go run example/vc/main.go
+```
+
+#### Use Voice Clones
+```bash
+go run example/clones/main.go
 ```

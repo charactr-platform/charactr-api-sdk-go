@@ -13,6 +13,10 @@ type vc struct {
 	credentials *Credentials
 }
 
+type VCRequestOptions struct {
+	ClonedVoice bool
+}
+
 func newVC(credentials *Credentials) *vc {
 	return &vc{credentials: credentials}
 }
@@ -21,7 +25,7 @@ func (v *vc) GetVoices(ctx context.Context) ([]Voice, error) {
 	return getVoices(ctx, fmt.Sprintf("%s/v1/vc/voices", sdkConfig.apiUrl), v.credentials)
 }
 
-func (v *vc) Convert(ctx context.Context, voiceID int, inputAudio []byte) (*AudioResponse, error) {
+func (v *vc) Convert(ctx context.Context, voiceID int, inputAudio []byte, options ...*VCRequestOptions) (*AudioResponse, error) {
 	var body bytes.Buffer
 	mp := multipart.NewWriter(&body)
 
@@ -40,7 +44,12 @@ func (v *vc) Convert(ctx context.Context, voiceID int, inputAudio []byte) (*Audi
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/v1/vc/convert?voiceId=%d", sdkConfig.apiUrl, voiceID), &body)
+	voiceType := "system"
+	if len(options) > 0 && options[0] != nil && options[0].ClonedVoice {
+		voiceType = "cloned"
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/v1/vc/convert?voiceId=%d&voiceType=%s", sdkConfig.apiUrl, voiceID, voiceType), &body)
 	if err != nil {
 		return nil, err
 	}
