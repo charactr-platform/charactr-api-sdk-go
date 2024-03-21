@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v2.2.0] - 2024-03-21
+
+- Update dependencies
+- Fix v2 module name
+
 ## [v2.1.0] - 2023-12-20
 
 - Added Voice Clone support
