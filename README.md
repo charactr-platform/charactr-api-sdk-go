@@ -16,7 +16,7 @@ Go SDK to interact with the charactr API.
 
 ## Installation
 ```bash
-go get github.com/charactr-platform/charactr-api-sdk-go
+go get github.com/charactr-platform/charactr-api-sdk-go/v2
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ For the detailed SDK usage, please refer to the [SDK reference](https://docs.api
 
 ### Quick start
 ```go
-import "github.com/charactr-platform/charactr-api-sdk-go"
+import "github.com/charactr-platform/charactr-api-sdk-go/v2"
 
 func main() {
     sdk := charactr.New(&charactr.Credentials{ClientKey: "", APIKey: ""})
@@ -36,7 +36,7 @@ func main() {
 
 #### Clone the SDK locally
 ```bash
-git clone https://github.com/charactr-platform/charactr-api-sdk-go
+git clone https://github.com/charactr-platform/charactr-api-sdk-go/v2
 ```
 
 #### Provide credentials

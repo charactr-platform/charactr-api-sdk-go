@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/charactr-platform/charactr-api-sdk-go"
-	"github.com/charactr-platform/charactr-api-sdk-go/example"
+	"github.com/charactr-platform/charactr-api-sdk-go/v2"
+	"github.com/charactr-platform/charactr-api-sdk-go/v2/example"
 )
 
 func main() {
